@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tyas & Bowo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #ffeef2;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+
+    h1 {
+      color: #b30059;
+      font-size: 2rem;
+      margin-bottom: 6px;
+    }
+
+    p.sub {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      max-width: 420px;
+      margin: 0 auto 30px auto;
+    }
+
+    .card {
+      aspect-ratio: 1 / 1;
+      position: relative;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      position: relative;
+    }
+
+    .flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+    }
+
+    .card-front {
+  background: #ffb3c6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  transform: rotateY(0deg);
+}
+
+    
+    .card-back {
+      background-size: cover;
+      background-position: center;
+      transform: rotateY(180deg);
+    }
+
+    .invisible {
+      visibility: hidden;
+    }
+
+    .instructions-card {
+      background-color: #ffe0eb;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 18px 20px;
+      margin: 0 auto;
+      max-width: 460px;
+      text-align: left;
+    }
+
+    .instructions-card h2 {
+      color: #c9184a;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .instructions-card ol {
+      padding-left: 20px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Mbak Tyas & Kak Bowo</h1>
+  <p class="sub">This is a little gift I've made for you.</p>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="instructions-card">
+    <h2>📝 Instructions:</h2>
+    <ol>
+      <li>
+        Here, 26 cards await you. Arranged in a heart shape (or in the shape of a house if holding your phone upside down.)
+      </li>
+      <li> Tap any two cards to flip them over and reveal the pictures underneath.
+       <ul><li>If the pictures match, the cards will stay open.</li>
+          <li>If the pictures don't match, they’ll flip back after a second.</li>
+      </ul>
+        <li>Try to remember where each image is hiding!</li>
+        <li>
+        These cards get randomly mixed every time this page is opened or refreshed. So that's how you can restart.
+       </li><li>
+       You win game when you pair all the images with their match, just as fate has paired you as partners for life. 
+      </li>
+    </ol>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid');
+
+    const heartLayout = [
+      [0, 1, 1, 0, 1, 1, 0],
+      [1, 1, 1, 0, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 0],
+      [0, 0, 1, 1, 1, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0],
+    ];
+
+    const imageList = [
+      "tb1.jpg", "tb2.jpg", "tb3.jpg", "tb4.jpg", "tb5.jpg",
+      "tb6.jpg", "tb7.jpg", "tb8.jpg", "tb9.jpg", "tb10.jpg",
+      "tb11.jpg", "tb12.jpg", "tb13.jpg"
+    ];
+
+    const allImages = [...imageList, ...imageList];
+    shuffle(allImages);
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    let imageIndex = 0;
+    let firstCard = null;
+    let lock = false;
+    let matchedPairs = 0;
+  const totalPairs = 13;
+
+
+    heartLayout.forEach(row => {
+      row.forEach(cell => {
+        const card = document.createElement('div');
+        if (cell === 0) {
+          card.className = 'card invisible';
+          grid.appendChild(card);
+          return;
+        }
+
+        card.className = 'card';
+        const inner = document.createElement('div');
+        inner.className = 'card-inner';
+
+  
+
+        const front = document.createElement('div');
+        front.className = 'card-front';
+        front.innerText = '💗';
+
+
+        const back = document.createElement('div');
+        back.className = 'card-back';
+        const imgURL = allImages[imageIndex++];
+        back.style.backgroundImage = `url('${imgURL}')`;
+
+        inner.appendChild(front);
+        inner.appendChild(back);
+        card.appendChild(inner);
+        grid.appendChild(card);
+
+        card.addEventListener('click', () => {
+          if (lock || card.classList.contains('flipped')) return;
+
+          card.classList.add('flipped');
+
+          if (!firstCard) {
+            firstCard = card;
+          } else {
+            lock = true;
+            const firstImg = firstCard.querySelector('.card-back').style.backgroundImage;
+            const secondImg = back.style.backgroundImage;
+
+if (firstImg === secondImg) {
+  matchedPairs++;
+  if (matchedPairs === totalPairs) {
+    setTimeout(() => {
+      alert("Congratulations! 💐 Wishing you a wonderful married life. -Hadvy");
+    }, 500);
+  }
+  firstCard = null;
+  lock = false;
+}
+
+            if (firstImg === secondImg) {
+              firstCard = null;
+              lock = false;
+            } else {
+              setTimeout(() => {
+                card.classList.remove('flipped');
+                firstCard.classList.remove('flipped');
+                firstCard = null;
+                lock = false;
+              }, 1000);
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
